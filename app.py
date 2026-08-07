@@ -19,7 +19,7 @@ st.caption("Stage 0 · Official DEW line")
 def load_geojson():
     path = Path("goyders_line_4326.geojson")
     if not path.exists():
-        st.error("goyders_line_4326.geojson not found in the repository root or data/ folder.")
+        st.error("goyders_line_4326.geojson not found.")
         st.stop()
     with open(path) as f:
         return json.load(f)
@@ -30,8 +30,32 @@ geojson_data = load_geojson()
 with st.sidebar:
     st.header("Layers")
     show_line = st.checkbox("Goyder's Line", value=True)
+
     st.markdown("---")
-    st.caption("Source: SA Department for Environment and Water")
+    st.subheader("George Woodroffe Goyder")
+    
+    # Portrait
+    img_path = Path("assets/george_goyder.jpg")
+    if img_path.exists():
+        st.image(
+            str(img_path),
+            caption="George Woodroffe Goyder (1820–1898)",
+            use_container_width=True,
+        )
+    else:
+        st.info("Portrait image not found in assets/")
+
+    st.caption(
+        "Source: State Library of South Australia, B 496"
+    )
+    
+    st.markdown(
+        """
+        Surveyor-General of South Australia who, in 1865, 
+        mapped the approximate northern limit of reliable 
+        rainfall for cropping (~250–300 mm isohyet).
+        """
+    )
 
 # ---------- map ----------
 m = folium.Map(
@@ -72,5 +96,5 @@ st_folium(m, width=None, height=720, returned_objects=[])
 st.markdown("---")
 st.caption(
     "Goyder's Line approximates the northern limit of reliable cropping rainfall "
-    "as assessed by Surveyor-General George Goyder in 1865 (~250–300 mm isohyet)."
+    "as assessed by Surveyor-General George Goyder in 1865."
 )
