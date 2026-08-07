@@ -2,7 +2,7 @@
 import streamlit as st
 from streamlit_folium import st_folium
 import folium
-import geopandas as gpd
+import json
 from pathlib import Path
 
 st.set_page_config(
@@ -12,21 +12,28 @@ st.set_page_config(
 )
 
 st.title("Goyder's Line – South Australia")
-st.caption("Stage 0 · Official DEW line (GDA2020 → WGS84)")
+st.caption("Stage 0 · Official DEW line")
 
+# ---------- load GeoJSON ----------
 @st.cache_data
-def load_line():
-    return gpd.read_file("goyders_line_4326.geojson")
+def load_geojson():
+    path = Path("goyders_line_4326.geojson")
+    if not path.exists():
+        st.error("goyders_line_4326.geojson not found in the repository root or data/ folder.")
+        st.stop()
+    with open(path) as f:
+        return json.load(f)
 
-gdf = load_line()
+geojson_data = load_geojson()
 
+# ---------- sidebar ----------
 with st.sidebar:
     st.header("Layers")
     show_line = st.checkbox("Goyder's Line", value=True)
     st.markdown("---")
     st.caption("Source: SA Department for Environment and Water")
 
-# Map
+# ---------- map ----------
 m = folium.Map(
     location=[-33.5, 137.5],
     zoom_start=6,
@@ -43,7 +50,7 @@ folium.TileLayer(
 
 if show_line:
     folium.GeoJson(
-        gdf,
+        geojson_data,
         name="Goyder's Line",
         style_function=lambda x: {
             "color": "#8B0000",
