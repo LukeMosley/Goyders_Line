@@ -1,8 +1,4 @@
 # app.py
-"""
-Goyder's Line – Stage 0 interactive map
-"""
-
 import streamlit as st
 from streamlit_folium import st_folium
 import folium
@@ -16,35 +12,21 @@ st.set_page_config(
 )
 
 st.title("Goyder's Line – South Australia")
-st.markdown(
-    """
-    **Stage 0 prototype**  
-    Official Goyder's Line (Department for Environment and Water) overlaid on an interactive map.  
-    Next stages will add gridded rainfall, soil moisture and NDVI.
-    """
-)
+st.caption("Stage 0 · Official DEW line (GDA2020 → WGS84)")
 
-# ---------- load data (cached) ----------
 @st.cache_data
-def load_goyders_line():
-    geojson_path = Path("data/goyders_line_4326.geojson")
-    if not geojson_path.exists():
-        st.error("GeoJSON not found. Run convert_goyders_line.py first.")
-        st.stop()
-    gdf = gpd.read_file(geojson_path)
-    return gdf
+def load_line():
+    return gpd.read_file("goyders_line_4326.geojson")
 
-gdf = load_goyders_line()
+gdf = load_line()
 
-# ---------- sidebar ----------
 with st.sidebar:
     st.header("Layers")
     show_line = st.checkbox("Goyder's Line", value=True)
     st.markdown("---")
-    st.caption("Data: SA Department for Environment and Water (GDA2020 → WGS84)")
+    st.caption("Source: SA Department for Environment and Water")
 
-# ---------- map ----------
-# Reasonable SA centre / zoom for the whole line
+# Map
 m = folium.Map(
     location=[-33.5, 137.5],
     zoom_start=6,
@@ -52,7 +34,6 @@ m = folium.Map(
     control_scale=True,
 )
 
-# Optional nicer basemap choices
 folium.TileLayer("OpenStreetMap", name="OpenStreetMap").add_to(m)
 folium.TileLayer(
     tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -64,14 +45,14 @@ if show_line:
     folium.GeoJson(
         gdf,
         name="Goyder's Line",
-        style_function=lambda feature: {
+        style_function=lambda x: {
             "color": "#8B0000",
             "weight": 4,
             "opacity": 0.95,
         },
         tooltip=folium.GeoJsonTooltip(
             fields=["OBJECTID"],
-            aliases=["Segment ID"],
+            aliases=["Segment"],
             sticky=True,
         ),
         highlight_function=lambda x: {"weight": 6, "color": "#FF4500"},
@@ -79,13 +60,10 @@ if show_line:
 
 folium.LayerControl(collapsed=False).add_to(m)
 
-# Render
-st_folium(m, width=None, height=700, returned_objects=[])
+st_folium(m, width=None, height=720, returned_objects=[])
 
-# ---------- footer ----------
 st.markdown("---")
 st.caption(
-    "Goyder's Line marks the approximate northern limit of reliable rainfall "
-    "for cropping as assessed by Surveyor-General George Goyder in 1865 "
-    "(~250–300 mm annual isohyet)."
+    "Goyder's Line approximates the northern limit of reliable cropping rainfall "
+    "as assessed by Surveyor-General George Goyder in 1865 (~250–300 mm isohyet)."
 )
