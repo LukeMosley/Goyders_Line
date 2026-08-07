@@ -35,7 +35,7 @@ with st.sidebar:
     st.subheader("George Woodroffe Goyder")
     
     # Portrait
-    img_path = Path("assets/george_goyder.jpg")
+    img_path = Path("assets/george-goyder.jpg")
     if img_path.exists():
         st.image(
             str(img_path),
