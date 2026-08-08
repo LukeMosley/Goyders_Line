@@ -20,7 +20,7 @@ st.caption("Stage 1 · Rainfall overlays (SILO 2015–2026)")
 GEOJSON_PATH = Path("goyders_line_4326.geojson")
 BOUNDS_PATH = Path("rainfall_overlays/bounds.json")
 OVERLAY_DIR = Path("rainfall_overlays")
-PORTRAIT_PATH = Path("assets/george_goyder.jpg")
+PORTRAIT_PATH = Path("assets/george-goyder.jpeg")
 
 # ---------- load static data ----------
 @st.cache_data
