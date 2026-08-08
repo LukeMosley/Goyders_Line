@@ -1,4 +1,3 @@
-# Goyder's line
 # app.py
 import streamlit as st
 from streamlit_folium import st_folium
@@ -7,6 +6,7 @@ from folium.raster_layers import ImageOverlay
 from branca.element import Template, MacroElement
 import json
 from pathlib import Path
+from datetime import datetime
 
 st.set_page_config(
     page_title="Goyder's Line Explorer",
@@ -37,22 +37,40 @@ def load_bounds():
 geojson_data = load_geojson()
 bounds_dict = load_bounds()
 
+# ---------- session state for map view ----------
+if "map_center" not in st.session_state:
+    st.session_state.map_center = [-33.5, 137.5]
+if "map_zoom" not in st.session_state:
+    st.session_state.map_zoom = 7
+
 # ---------- sidebar ----------
 with st.sidebar:
     st.header("Layers")
-
     show_line = st.checkbox("Goyder's Line", value=True)
     show_rain = st.checkbox("Monthly Rainfall", value=True)
 
     st.markdown("---")
     st.subheader("Rainfall controls")
 
-    year = st.selectbox("Year", options=list(range(2015, 2027)), index=10)
+    # Default to latest year that has data
+    available_years = list(range(2015, 2027))
+    year = st.selectbox("Year", options=available_years, index=len(available_years) - 1)
+
+    # Default to latest month that exists for the selected year
+    possible_months = []
+    for m in range(1, 13):
+        if (OVERLAY_DIR / f"rain_{year}_{m:02d}.png").exists():
+            possible_months.append(m)
+
+    if not possible_months:
+        possible_months = list(range(1, 13))
+
+    default_month_index = len(possible_months) - 1
     month = st.selectbox(
         "Month",
-        options=list(range(1, 13)),
+        options=possible_months,
         format_func=lambda m: f"{m:02d}",
-        index=5,
+        index=default_month_index,
     )
 
     opacity = st.slider("Rainfall opacity", 0.0, 1.0, 0.65, 0.05)
@@ -72,7 +90,7 @@ with st.sidebar:
         "(~250–300 mm annual isohyet)."
     )
 
-# ---------- colour legend (HTML) ----------
+# ---------- colour legend ----------
 legend_html = """
 {% macro html(this, kwargs) %}
 <div style="
@@ -111,13 +129,12 @@ class RainfallLegend(MacroElement):
 
 # ---------- build map ----------
 m = folium.Map(
-    location=[-33.5, 137.5],
-    zoom_start=6,
+    location=st.session_state.map_center,
+    zoom_start=st.session_state.map_zoom,
     tiles=None,
     control_scale=True,
 )
 
-# Friendly basemap names
 folium.TileLayer("CartoDB positron", name="Light map").add_to(m)
 folium.TileLayer("OpenStreetMap", name="Street map").add_to(m)
 folium.TileLayer(
@@ -162,28 +179,29 @@ if show_line:
         highlight_function=lambda x: {"weight": 6, "color": "#FF4500"},
     ).add_to(m)
 
-# Layer control
 folium.LayerControl(collapsed=False, position="bottomright").add_to(m)
-
-# Colour legend
 m.get_root().add_child(RainfallLegend())
 
-# ---------- IMPORTANT: force re-render when year or month changes ----------
-st_folium(
+# ---------- render map and capture current view ----------
+map_data = st_folium(
     m,
     width=None,
     height=720,
-    returned_objects=[],
-    key=f"map_{year}_{month:02d}"      # ← this line is the key fix
+    returned_objects=["center", "zoom"],
+    key=f"map_{year}_{month:02d}_{opacity}",   # forces refresh when year/month/opacity change
 )
 
-# ---------- footer + save tip ----------
+# Save the current view so it is preserved next time
+if map_data and map_data.get("center") and map_data.get("zoom"):
+    st.session_state.map_center = [map_data["center"]["lat"], map_data["center"]["lng"]]
+    st.session_state.map_zoom = map_data["zoom"]
+
+# ---------- footer ----------
 st.markdown("---")
 st.caption(
     "Rainfall data: SILO (Queensland Government). "
     "Goyder's Line: SA Department for Environment and Water."
 )
-
 st.info(
     "**Tip – Save map as image:** Right-click on the map → “Save image as…” "
     "(Chrome / Edge) or use your system screenshot tool (Windows: Win+Shift+S)."
