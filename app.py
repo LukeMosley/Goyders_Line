@@ -88,17 +88,17 @@ legend_html = """
     font-family: Arial, sans-serif;
     box-shadow: 0 1px 4px rgba(0,0,0,0.3);
 ">
-    <div style="font-weight: bold; margin-bottom: 6px;">Monthly rainfall</div>
+    <div style="font-weight: bold; margin-bottom: 6px;">Monthly rainfall (mm)</div>
     <div style="
-        width: 160px;
+        width: 180px;
         height: 14px;
         background: linear-gradient(to right, #ffffd9, #edf8b1, #c7e9b4, #7fcdbb, #41b6c4, #1d91c0, #225ea8, #0c2c84);
         border: 1px solid #666;
         margin-bottom: 4px;
     "></div>
     <div style="display: flex; justify-content: space-between; font-size: 12px;">
-        <span>Low</span>
-        <span>High</span>
+        <span>0</span>
+        <span>150</span>
     </div>
 </div>
 {% endmacro %}
