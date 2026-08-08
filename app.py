@@ -112,7 +112,7 @@ class RainfallLegend(MacroElement):
 # ---------- build map ----------
 m = folium.Map(
     location=[-33.5, 137.5],
-    zoom_start=7,
+    zoom_start=6,
     tiles=None,
     control_scale=True,
 )
@@ -142,9 +142,9 @@ if show_rain:
             zindex=1,
         ).add_to(m)
     else:
-        st.sidebar.warning(f"No rainfall overlay for {year}-{month:02d}")
+        st.sidebar.warning(f"No rainfall overlay found for {year}-{month:02d}")
 
-# Goyder's Line (drawn last so it sits on top)
+# Goyder's Line
 if show_line:
     folium.GeoJson(
         geojson_data,
@@ -162,14 +162,20 @@ if show_line:
         highlight_function=lambda x: {"weight": 6, "color": "#FF4500"},
     ).add_to(m)
 
-# Layer control – bottom right
+# Layer control
 folium.LayerControl(collapsed=False, position="bottomright").add_to(m)
 
-# Add the colour legend
+# Colour legend
 m.get_root().add_child(RainfallLegend())
 
-# Render map
-st_folium(m, width=None, height=720, returned_objects=[])
+# ---------- IMPORTANT: force re-render when year or month changes ----------
+st_folium(
+    m,
+    width=None,
+    height=720,
+    returned_objects=[],
+    key=f"map_{year}_{month:02d}"      # ← this line is the key fix
+)
 
 # ---------- footer + save tip ----------
 st.markdown("---")
