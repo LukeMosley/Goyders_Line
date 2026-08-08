@@ -70,7 +70,7 @@ with st.sidebar:
 m = folium.Map(
     location=[-33.5, 137.5],
     zoom_start=7,
-    tiles="Basic cartographic",
+    tiles="CartoDB positron",
     control_scale=True,
 )
 
