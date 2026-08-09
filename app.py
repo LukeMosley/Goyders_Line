@@ -173,7 +173,7 @@ if show_rain:
         ImageOverlay(
             name=f"Rainfall {year}-{month:02d}",
             image=str(png_path),
-            bounds=bounds_dict[key],          # [[south, west], [north, east]]
+            bounds=bounds_dict[key],
             opacity=opacity,
             interactive=False,
             cross_origin=False,
@@ -199,21 +199,29 @@ if show_line:
         ),
     ).add_to(m)
 
-# NO LayerControl on the map – controls stay in the sidebar only
 m.get_root().add_child(RainfallLegend())
 
-# Render map and remember view
+# ---------- render map (stable key + pass center/zoom) ----------
 map_data = st_folium(
     m,
+    center=st.session_state.map_center,   # important
+    zoom=st.session_state.map_zoom,       # important
     width=None,
     height=720,
-    returned_objects=["center", "zoom"],
-    key=f"map_{year}_{month:02d}_{opacity}",
+    key=f"map_{year}_{month:02d}",        # ONLY year + month (do NOT include opacity)
+    returned_objects=["last_center", "last_zoom", "center", "zoom"],
 )
 
-if map_data and map_data.get("center") and map_data.get("zoom"):
-    st.session_state.map_center = [map_data["center"]["lat"], map_data["center"]["lng"]]
-    st.session_state.map_zoom = map_data["zoom"]
+# Update session state from user interaction
+if map_data:
+    # Prefer the "last_*" keys if they exist, otherwise fall back
+    center = map_data.get("last_center") or map_data.get("center")
+    zoom   = map_data.get("last_zoom")   or map_data.get("zoom")
+
+    if center:
+        st.session_state.map_center = [center["lat"], center["lng"]]
+    if zoom is not None:
+        st.session_state.map_zoom = zoom
 
 st.markdown("---")
 st.caption(
