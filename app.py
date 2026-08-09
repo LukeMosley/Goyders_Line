@@ -21,25 +21,6 @@ st.markdown(
             padding-top: 1rem !important;
             padding-bottom: 1rem !important;
         }
-
-        /* Force zoom control to bottom-left */
-        .leaflet-top.leaflet-left {
-            top: auto !important;
-            bottom: 25px !important;
-            left: 10px !important;
-            right: auto !important;
-        }
-
-        .leaflet-control-zoom {
-            position: relative !important;
-            z-index: 1001 !important;
-        }
-
-        /* Extra specificity in case Folium re-injects the control */
-        .leaflet-left .leaflet-control-zoom {
-            top: auto !important;
-            bottom: 25px !important;
-        }
     </style>
     """,
     unsafe_allow_html=True,
@@ -161,12 +142,8 @@ m = folium.Map(
     zoom_start=st.session_state.map_zoom,
     tiles=None,
     control_scale=True,
-    zoom_control=False,          # turn off the default top-left control
+    # leave default zoom control on – we will move it with JS
 )
-
-# Add zoom control in the bottom-left
-from folium.map import ZoomControl
-ZoomControl(position="bottomleft").add_to(m)
 
 folium.TileLayer("CartoDB positron", name="Light map").add_to(m)
 folium.TileLayer("OpenStreetMap", name="Street map").add_to(m)
@@ -212,6 +189,23 @@ if show_line:
     ).add_to(m)
 
 m.get_root().add_child(RainfallLegend())
+
+# Force the zoom control to bottom-left after the map is created
+m.get_root().html.add_child(folium.Element("""
+<script>
+    // Wait a moment for Leaflet to finish creating the control, then move it
+    setTimeout(function() {
+        var zoom = document.querySelector('.leaflet-control-zoom');
+        if (zoom) {
+            var parent = zoom.parentElement;
+            // Move the whole top-left container to the bottom
+            parent.style.top = 'auto';
+            parent.style.bottom = '25px';
+            parent.style.left = '10px';
+        }
+    }, 800);
+</script>
+"""))
 
 # ---------- render map ----------
 map_key = f"map_{year}_{month:02d}"
