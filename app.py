@@ -161,11 +161,12 @@ m = folium.Map(
     zoom_start=st.session_state.map_zoom,
     tiles=None,
     control_scale=True,
-    zoom_control=False,               # disable default
+    zoom_control=False,          # turn off the default top-left control
 )
 
-# Put zoom buttons in bottom-left
-folium.ZoomControl(position="bottomleft").add_to(m)
+# Add zoom control in the bottom-left
+from folium.map import ZoomControl
+ZoomControl(position="bottomleft").add_to(m)
 
 folium.TileLayer("CartoDB positron", name="Light map").add_to(m)
 folium.TileLayer("OpenStreetMap", name="Street map").add_to(m)
