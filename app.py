@@ -179,6 +179,15 @@ if show_rain:
     key = f"{year}-{month:02d}"
     png_path = OVERLAY_DIR / f"rain_{year}_{month:02d}.png"
 
+    # ----- EXTRA DEBUG -----
+    st.sidebar.write(f"Trying key: `{key}`")
+    st.sidebar.write(f"PNG path: `{png_path}`")
+    st.sidebar.write(f"PNG exists: {png_path.exists()}")
+    st.sidebar.write(f"Key in bounds_dict: {key in bounds_dict}")
+    if key in bounds_dict:
+        st.sidebar.write(f"Bounds: {bounds_dict[key]}")
+    # ----- END EXTRA DEBUG -----
+
     if png_path.exists() and key in bounds_dict:
         ImageOverlay(
             name=f"Rainfall {year}-{month:02d}",
