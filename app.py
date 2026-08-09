@@ -16,39 +16,28 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-        /* Reduce top padding */
+        /* Minimal top padding so map sits high */
         .block-container {
-            padding-top: 1.5rem !important;
+            padding-top: 1rem !important;
             padding-bottom: 1rem !important;
         }
-        h1 {
-            margin-top: 0rem !important;
-            margin-bottom: 0.3rem !important;
-            font-size: 1.8rem !important;
-        }
-        .stCaption {
-            margin-top: -0.4rem !important;
-            margin-bottom: 0.8rem !important;
-        }
 
-        /* Keep Folium zoom controls visible and on top */
+        /* Keep zoom controls at top-left and visible */
+        .leaflet-top.leaflet-left {
+            top: 10px !important;
+            left: 10px !important;
+            z-index: 1001 !important;
+        }
         .leaflet-control-zoom {
             z-index: 1001 !important;
-            margin-top: 60px !important;
-            margin-left: 10px !important;
         }
 
-        /* Make sure the zoom buttons stay clickable */
-        .leaflet-bar a {
-            z-index: 1002 !important;
-        }
+        /* Rainfall legend – keep it clear of the zoom controls */
+        /* (your existing legend is already top-right, this is just a reminder) */
     </style>
     """,
     unsafe_allow_html=True,
 )
-
-st.markdown("### Goyder's Line – South Australia")
-st.caption("Rainfall overlays from SILO")
 
 # ---------- paths ----------
 GEOJSON_PATH = Path("goyders_line_4326.geojson")
@@ -78,6 +67,11 @@ if "map_zoom" not in st.session_state:
 
 # ---------- sidebar ----------
 with st.sidebar:
+    st.markdown("### Goyder's Line")
+    st.caption("South Australia · SILO rainfall 2015–2026")
+    
+    st.markdown("---")
+
     st.header("Layers")
     show_line = st.checkbox("Goyder's Line", value=True)
     show_rain = st.checkbox("Monthly Rainfall", value=True)
