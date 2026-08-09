@@ -34,7 +34,7 @@ st.markdown(
         /* Keep Folium zoom controls visible and on top */
         .leaflet-control-zoom {
             z-index: 1001 !important;
-            margin-top: 20px !important;
+            margin-top: 60px !important;
             margin-left: 10px !important;
         }
 
