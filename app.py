@@ -13,16 +13,15 @@ st.set_page_config(
     layout="wide",
 )
 
+# ---------- CSS ----------
 st.markdown(
     """
     <style>
-        /* Minimal top padding so map sits high */
         .block-container {
             padding-top: 1rem !important;
             padding-bottom: 1rem !important;
         }
-
-        /* Keep zoom controls at top-left and visible */
+        /* Keep zoom controls visible at top-left */
         .leaflet-top.leaflet-left {
             top: 10px !important;
             left: 10px !important;
@@ -31,9 +30,6 @@ st.markdown(
         .leaflet-control-zoom {
             z-index: 1001 !important;
         }
-
-        /* Rainfall legend – keep it clear of the zoom controls */
-        /* (your existing legend is already top-right, this is just a reminder) */
     </style>
     """,
     unsafe_allow_html=True,
@@ -59,7 +55,7 @@ def load_bounds():
 geojson_data = load_geojson()
 bounds_dict = load_bounds()
 
-# ---------- session state for map view ----------
+# ---------- session state ----------
 if "map_center" not in st.session_state:
     st.session_state.map_center = [-33.5, 137.5]
 if "map_zoom" not in st.session_state:
@@ -69,7 +65,6 @@ if "map_zoom" not in st.session_state:
 with st.sidebar:
     st.markdown("### Goyder's Line")
     st.caption("South Australia · SILO rainfall 2015–2026")
-    
     st.markdown("---")
 
     st.header("Layers")
@@ -82,10 +77,10 @@ with st.sidebar:
     available_years = list(range(2015, 2027))
     year = st.selectbox("Year", options=available_years, index=len(available_years) - 1)
 
-    possible_months = []
-    for m in range(1, 13):
-        if (OVERLAY_DIR / f"rain_{year}_{m:02d}.png").exists():
-            possible_months.append(m)
+    possible_months = [
+        m for m in range(1, 13)
+        if (OVERLAY_DIR / f"rain_{year}_{m:02d}.png").exists()
+    ]
     if not possible_months:
         possible_months = list(range(1, 13))
 
@@ -113,14 +108,14 @@ with st.sidebar:
         "(~250–300 mm annual isohyet)."
     )
 
-# ---------- colour legend (top-right) ----------
+# ---------- rainfall legend (top-right) ----------
 legend_html = """
 {% macro html(this, kwargs) %}
 <div style="
     position: fixed;
-    top: 60px;
+    top: 80px;
     right: 20px;
-    z-index: 1000;
+    z-index: 999;
     background: white;
     padding: 10px 14px;
     border-radius: 6px;
@@ -149,12 +144,6 @@ class RainfallLegend(MacroElement):
     def __init__(self):
         super().__init__()
         self._template = Template(legend_html)
-
-# ---------- session state ----------
-if "map_center" not in st.session_state:
-    st.session_state.map_center = [-33.5, 137.5]
-if "map_zoom" not in st.session_state:
-    st.session_state.map_zoom = 7
 
 # ---------- build map ----------
 m = folium.Map(
@@ -187,6 +176,8 @@ if show_rain:
             cross_origin=False,
             zindex=1,
         ).add_to(m)
+    else:
+        st.sidebar.warning(f"No rainfall overlay for {year}-{month:02d}")
 
 # Goyder's Line
 if show_line:
@@ -207,8 +198,7 @@ if show_line:
 
 m.get_root().add_child(RainfallLegend())
 
-# ---------- CRITICAL: stable key + pass center/zoom ----------
-# Key only changes when the rainfall data itself changes
+# ---------- render map ----------
 map_key = f"map_{year}_{month:02d}"
 
 map_data = st_folium(
@@ -222,17 +212,15 @@ map_data = st_folium(
     use_container_width=True,
 )
 
-# Safely update session state only when we receive new values
+# Update view state
 if map_data is not None:
     new_center = map_data.get("last_center")
     new_zoom = map_data.get("last_zoom")
-
     if new_center is not None:
         st.session_state.map_center = [new_center["lat"], new_center["lng"]]
     if new_zoom is not None:
         st.session_state.map_zoom = new_zoom
 
-st.markdown("---")
 st.caption(
     "Rainfall data: SILO (Queensland Government). "
     "Goyder's Line: SA Department for Environment and Water."
