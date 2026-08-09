@@ -67,6 +67,19 @@ with st.sidebar:
     st.caption("South Australia · SILO rainfall 2015–2026")
     st.markdown("---")
 
+    # ----- TEMPORARY DEBUG -----
+    st.write("**Debug – file check**")
+    st.write(f"Overlay dir exists: {OVERLAY_DIR.exists()}")
+    st.write(f"Bounds file exists: {BOUNDS_PATH.exists()}")
+    
+    test_png = OVERLAY_DIR / "rain_2024_06.png"
+    st.write(f"Example PNG exists: {test_png.exists()}")
+    if OVERLAY_DIR.exists():
+        png_count = len(list(OVERLAY_DIR.glob("rain_*.png")))
+        st.write(f"Number of rain_*.png files: {png_count}")
+    st.markdown("---")
+    # ----- END DEBUG -----
+
     st.header("Layers")
     show_line = st.checkbox("Goyder's Line", value=True)
     show_rain = st.checkbox("Monthly Rainfall", value=True)
