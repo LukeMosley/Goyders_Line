@@ -18,7 +18,7 @@ st.markdown(
     <style>
         /* Reduce top padding of the main content */
         .block-container {
-            padding-top: 1.5rem !important;
+            padding-top: 0.5rem !important;
             padding-bottom: 1rem !important;
         }
 
@@ -39,8 +39,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.title("Goyder's Line – South Australia")
-st.caption("Rainfall overlays from SILO (2015–2026)")
+st.markdown("### Goyder's Line – South Australia")
+st.caption("Rainfall overlays from SILO")
 
 # ---------- paths ----------
 GEOJSON_PATH = Path("goyders_line_4326.geojson")
