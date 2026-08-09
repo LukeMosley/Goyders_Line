@@ -21,9 +21,11 @@ st.markdown(
             padding-top: 1rem !important;
             padding-bottom: 1rem !important;
         }
-        /* Keep zoom controls visible at top-left */
+
+        /* Move zoom controls to bottom-left */
         .leaflet-top.leaflet-left {
-            top: 10px !important;
+            top: auto !important;
+            bottom: 30px !important;
             left: 10px !important;
             z-index: 1001 !important;
         }
@@ -66,19 +68,6 @@ with st.sidebar:
     st.markdown("### Goyder's Line")
     st.caption("South Australia · SILO rainfall 2015–2026")
     st.markdown("---")
-
-    # ----- TEMPORARY DEBUG -----
-    st.write("**Debug – file check**")
-    st.write(f"Overlay dir exists: {OVERLAY_DIR.exists()}")
-    st.write(f"Bounds file exists: {BOUNDS_PATH.exists()}")
-    
-    test_png = OVERLAY_DIR / "rain_2024_06.png"
-    st.write(f"Example PNG exists: {test_png.exists()}")
-    if OVERLAY_DIR.exists():
-        png_count = len(list(OVERLAY_DIR.glob("rain_*.png")))
-        st.write(f"Number of rain_*.png files: {png_count}")
-    st.markdown("---")
-    # ----- END DEBUG -----
 
     st.header("Layers")
     show_line = st.checkbox("Goyder's Line", value=True)
@@ -178,15 +167,6 @@ folium.TileLayer(
 if show_rain:
     key = f"{year}-{month:02d}"
     png_path = OVERLAY_DIR / f"rain_{year}_{month:02d}.png"
-
-    # ----- EXTRA DEBUG -----
-    st.sidebar.write(f"Trying key: `{key}`")
-    st.sidebar.write(f"PNG path: `{png_path}`")
-    st.sidebar.write(f"PNG exists: {png_path.exists()}")
-    st.sidebar.write(f"Key in bounds_dict: {key in bounds_dict}")
-    if key in bounds_dict:
-        st.sidebar.write(f"Bounds: {bounds_dict[key]}")
-    # ----- END EXTRA DEBUG -----
 
     if png_path.exists() and key in bounds_dict:
         ImageOverlay(
