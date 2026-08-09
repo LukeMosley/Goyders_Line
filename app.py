@@ -22,15 +22,23 @@ st.markdown(
             padding-bottom: 1rem !important;
         }
 
-        /* Move zoom controls to bottom-left */
+        /* Force zoom control to bottom-left */
         .leaflet-top.leaflet-left {
             top: auto !important;
-            bottom: 30px !important;
+            bottom: 25px !important;
             left: 10px !important;
+            right: auto !important;
+        }
+
+        .leaflet-control-zoom {
+            position: relative !important;
             z-index: 1001 !important;
         }
-        .leaflet-control-zoom {
-            z-index: 1001 !important;
+
+        /* Extra specificity in case Folium re-injects the control */
+        .leaflet-left .leaflet-control-zoom {
+            top: auto !important;
+            bottom: 25px !important;
         }
     </style>
     """,
