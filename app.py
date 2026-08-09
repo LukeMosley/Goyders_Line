@@ -16,23 +16,31 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-        /* Reduce top padding of the main content */
+        /* Reduce top padding */
         .block-container {
             padding-top: 1.5rem !important;
             padding-bottom: 1rem !important;
         }
-
-        /* Make the title a bit tighter */
         h1 {
             margin-top: 0rem !important;
             margin-bottom: 0.3rem !important;
             font-size: 1.8rem !important;
         }
-
-        /* Tighten the caption under the title */
         .stCaption {
             margin-top: -0.4rem !important;
             margin-bottom: 0.8rem !important;
+        }
+
+        /* Keep Folium zoom controls visible and on top */
+        .leaflet-control-zoom {
+            z-index: 1001 !important;
+            margin-top: 10px !important;
+            margin-left: 10px !important;
+        }
+
+        /* Make sure the zoom buttons stay clickable */
+        .leaflet-bar a {
+            z-index: 1002 !important;
         }
     </style>
     """,
