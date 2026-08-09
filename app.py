@@ -18,7 +18,7 @@ st.markdown(
     <style>
         /* Reduce top padding of the main content */
         .block-container {
-            padding-top: 1.0rem !important;
+            padding-top: 1.5rem !important;
             padding-bottom: 1rem !important;
         }
 
