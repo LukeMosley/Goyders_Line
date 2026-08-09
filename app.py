@@ -116,7 +116,7 @@ legend_html = """
 {% macro html(this, kwargs) %}
 <div style="
     position: fixed;
-    top: 80px;
+    top: 60px;
     right: 20px;
     z-index: 1000;
     background: white;
