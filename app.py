@@ -6,7 +6,6 @@ from folium.raster_layers import ImageOverlay
 from branca.element import Template, MacroElement
 import json
 from pathlib import Path
-from datetime import datetime
 
 st.set_page_config(
     page_title="Goyder's Line Explorer",
@@ -52,25 +51,21 @@ with st.sidebar:
     st.markdown("---")
     st.subheader("Rainfall controls")
 
-    # Default to latest year that has data
     available_years = list(range(2015, 2027))
     year = st.selectbox("Year", options=available_years, index=len(available_years) - 1)
 
-    # Default to latest month that exists for the selected year
     possible_months = []
     for m in range(1, 13):
         if (OVERLAY_DIR / f"rain_{year}_{m:02d}.png").exists():
             possible_months.append(m)
-
     if not possible_months:
         possible_months = list(range(1, 13))
 
-    default_month_index = len(possible_months) - 1
     month = st.selectbox(
         "Month",
         options=possible_months,
         format_func=lambda m: f"{m:02d}",
-        index=default_month_index,
+        index=len(possible_months) - 1,
     )
 
     opacity = st.slider("Rainfall opacity", 0.0, 1.0, 0.65, 0.05)
@@ -90,13 +85,13 @@ with st.sidebar:
         "(~250–300 mm annual isohyet)."
     )
 
-# ---------- colour legend ----------
+# ---------- colour legend (top-right) ----------
 legend_html = """
 {% macro html(this, kwargs) %}
 <div style="
     position: fixed;
-    bottom: 30px;
-    left: 30px;
+    top: 80px;
+    right: 20px;
     z-index: 1000;
     background: white;
     padding: 10px 14px;
@@ -108,7 +103,7 @@ legend_html = """
 ">
     <div style="font-weight: bold; margin-bottom: 6px;">Monthly rainfall (mm)</div>
     <div style="
-        width: 180px;
+        width: 160px;
         height: 14px;
         background: linear-gradient(to right, #ffffd9, #edf8b1, #c7e9b4, #7fcdbb, #41b6c4, #1d91c0, #225ea8, #0c2c84);
         border: 1px solid #666;
@@ -152,14 +147,14 @@ if show_rain:
         ImageOverlay(
             name=f"Rainfall {year}-{month:02d}",
             image=str(png_path),
-            bounds=bounds_dict[key],
+            bounds=bounds_dict[key],          # [[south, west], [north, east]]
             opacity=opacity,
-            interactive=True,
+            interactive=False,
             cross_origin=False,
             zindex=1,
         ).add_to(m)
     else:
-        st.sidebar.warning(f"No rainfall overlay found for {year}-{month:02d}")
+        st.sidebar.warning(f"No rainfall overlay for {year}-{month:02d}")
 
 # Goyder's Line
 if show_line:
@@ -176,33 +171,26 @@ if show_line:
             aliases=["Segment"],
             sticky=True,
         ),
-        highlight_function=lambda x: {"weight": 6, "color": "#FF4500"},
     ).add_to(m)
 
-folium.LayerControl(collapsed=False, position="bottomright").add_to(m)
+# NO LayerControl on the map – controls stay in the sidebar only
 m.get_root().add_child(RainfallLegend())
 
-# ---------- render map and capture current view ----------
+# Render map and remember view
 map_data = st_folium(
     m,
     width=None,
     height=720,
     returned_objects=["center", "zoom"],
-    key=f"map_{year}_{month:02d}_{opacity}",   # forces refresh when year/month/opacity change
+    key=f"map_{year}_{month:02d}_{opacity}",
 )
 
-# Save the current view so it is preserved next time
 if map_data and map_data.get("center") and map_data.get("zoom"):
     st.session_state.map_center = [map_data["center"]["lat"], map_data["center"]["lng"]]
     st.session_state.map_zoom = map_data["zoom"]
 
-# ---------- footer ----------
 st.markdown("---")
 st.caption(
     "Rainfall data: SILO (Queensland Government). "
     "Goyder's Line: SA Department for Environment and Water."
-)
-st.info(
-    "**Tip – Save map as image:** Right-click on the map → “Save image as…” "
-    "(Chrome / Edge) or use your system screenshot tool (Windows: Win+Shift+S)."
 )
