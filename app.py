@@ -13,6 +13,32 @@ st.set_page_config(
     layout="wide",
 )
 
+st.markdown(
+    """
+    <style>
+        /* Reduce top padding of the main content */
+        .block-container {
+            padding-top: 1.5rem !important;
+            padding-bottom: 1rem !important;
+        }
+
+        /* Make the title a bit tighter */
+        h1 {
+            margin-top: 0rem !important;
+            margin-bottom: 0.3rem !important;
+            font-size: 1.8rem !important;
+        }
+
+        /* Tighten the caption under the title */
+        .stCaption {
+            margin-top: -0.4rem !important;
+            margin-bottom: 0.8rem !important;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.title("Goyder's Line – South Australia")
 st.caption("Rainfall overlays from SILO (2015–2026)")
 
