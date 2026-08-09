@@ -148,6 +148,12 @@ class RainfallLegend(MacroElement):
         super().__init__()
         self._template = Template(legend_html)
 
+# ---------- session state ----------
+if "map_center" not in st.session_state:
+    st.session_state.map_center = [-33.5, 137.5]
+if "map_zoom" not in st.session_state:
+    st.session_state.map_zoom = 7
+
 # ---------- build map ----------
 m = folium.Map(
     location=st.session_state.map_center,
@@ -179,8 +185,6 @@ if show_rain:
             cross_origin=False,
             zindex=1,
         ).add_to(m)
-    else:
-        st.sidebar.warning(f"No rainfall overlay for {year}-{month:02d}")
 
 # Goyder's Line
 if show_line:
@@ -201,27 +205,30 @@ if show_line:
 
 m.get_root().add_child(RainfallLegend())
 
-# ---------- render map (stable key + pass center/zoom) ----------
+# ---------- CRITICAL: stable key + pass center/zoom ----------
+# Key only changes when the rainfall data itself changes
+map_key = f"map_{year}_{month:02d}"
+
 map_data = st_folium(
     m,
-    center=st.session_state.map_center,   # important
-    zoom=st.session_state.map_zoom,       # important
-    width=None,
+    center=st.session_state.map_center,
+    zoom=st.session_state.map_zoom,
+    key=map_key,
     height=720,
-    key=f"map_{year}_{month:02d}",        # ONLY year + month (do NOT include opacity)
-    returned_objects=["last_center", "last_zoom", "center", "zoom"],
+    width=None,
+    returned_objects=["last_center", "last_zoom"],
+    use_container_width=True,
 )
 
-# Update session state from user interaction
-if map_data:
-    # Prefer the "last_*" keys if they exist, otherwise fall back
-    center = map_data.get("last_center") or map_data.get("center")
-    zoom   = map_data.get("last_zoom")   or map_data.get("zoom")
+# Safely update session state only when we receive new values
+if map_data is not None:
+    new_center = map_data.get("last_center")
+    new_zoom = map_data.get("last_zoom")
 
-    if center:
-        st.session_state.map_center = [center["lat"], center["lng"]]
-    if zoom is not None:
-        st.session_state.map_zoom = zoom
+    if new_center is not None:
+        st.session_state.map_center = [new_center["lat"], new_center["lng"]]
+    if new_zoom is not None:
+        st.session_state.map_zoom = new_zoom
 
 st.markdown("---")
 st.caption(
