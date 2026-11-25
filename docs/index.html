@@ -29,11 +29,11 @@
       <div class="goyder">
         <img src="goyder-portrait.jpg" width="110" height="143" alt="George Woodroffe Goyder seated on a bench, about 1895">
         <div>
-          <p>George Woodroffe Goyder (1826&ndash;1898), South Australia's Surveyor-General, mapped the limit of reliable rainfall in late 1865: cropping to the south, grazing to the north, roughly the 250&ndash;300&nbsp;mm average annual zone.</p>
+          <p>George Woodroffe Goyder (1826&ndash;1898), South Australia's Surveyor-General, mapped the limit of reliable rainfall from the vegetation (especially saltbush), not from a set rainfall total. Official sources often compare it with the 10-inch (250&nbsp;mm) line, but on these maps it sits closer to 300&nbsp;mm.</p>
           <details class="more"><summary>More</summary>
             <div class="more-body">
               <p>During the 1863&ndash;66 drought he was asked to map &ldquo;the line of demarcation between that portion of the country where the rainfall has extended, and that where the drought prevails&rdquo;. His line, published in 1866, used the change in vegetation (especially saltbush) as a guide to long-term rainfall. It was ignored in the wet 1870s, when farming pushed north, and many of those farms failed in the dry years that followed.</p>
-              <p>The coloured map is SILO gridded rainfall (about 5&nbsp;km cells). The black and orange lines show where the average annual rainfall was 250&nbsp;mm (solid) and 300&nbsp;mm (dashed) in two periods you can choose, so you can see whether the rainfall boundary has moved since Goyder's time. SILO is interpolated from rain gauges, which were sparse in the north before about 1900, so treat early-period lines as approximate.</p>
+              <p>The coloured map is SILO gridded rainfall (about 5&nbsp;km cells). The black and orange lines show the 300&nbsp;mm average annual rainfall contour in two periods you can choose, so you can see whether that boundary has moved since Goyder's time. A 250&nbsp;mm line (the 10-inch figure often used in official sources) can be turned on under More options. SILO is interpolated from rain gauges, which were sparse in the north before about 1900, so treat early-period lines as approximate.</p>
             </div>
           </details>
           <p class="credit">Photo: State Library of South Australia, B&nbsp;496 (about 1895).</p>
@@ -79,7 +79,7 @@
 
       <div class="toggles">
         <label><input type="checkbox" id="t-line" checked> Goyder's Line</label>
-        <label><input type="checkbox" id="t-iso" checked> 250/300&nbsp;mm rainfall lines</label>
+        <label><input type="checkbox" id="t-iso" checked> 300&nbsp;mm rainfall lines</label>
       </div>
 
       <details class="advanced" id="advanced">
@@ -102,12 +102,13 @@
           <label>Compare against
             <select id="baseline" aria-label="Average period"></select>
           </label>
-          <label>250/300&nbsp;mm lines, first period
-            <select id="eraA" aria-label="First period for rainfall lines"></select>
+          <label>300&nbsp;mm lines, first period
+            <select id="eraA" aria-label="First period for 300 mm rainfall lines"></select>
           </label>
           <label>Compared with
-            <select id="eraB" aria-label="Second period for rainfall lines"></select>
+            <select id="eraB" aria-label="Second period for 300 mm rainfall lines"></select>
           </label>
+          <label><input type="checkbox" id="t-iso250"> Also show the 250&nbsp;mm line</label>
           <label><input type="checkbox" id="t-towns" checked> Town labels</label>
           <label class="opacity">Shading <input type="range" id="opacity" min="0" max="1" step="0.05" value="0.75"></label>
         </div>

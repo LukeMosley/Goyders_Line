@@ -3,7 +3,7 @@
 Tools for exploring **Goyder's Line**, the line of "reliable rainfall" that South Australia's
 Surveyor-General George Woodroffe Goyder (1826–1898) mapped in late 1865, during the 1863–66 drought
 (published 1866). South of the line was judged suitable for cropping and north of it only for grazing.
-It roughly follows the 250–300 mm average annual rainfall zone.
+He mapped it from the vegetation (especially saltbush), not from a set rainfall total. Official sources often compare it with the 10-inch (250 mm) isohyet; on the SILO maps in this widget it sits closer to 300 mm average annual rainfall.
 
 The repository contains:
 
@@ -25,14 +25,14 @@ What it shows:
 * **Year**: calendar-year total for any year since 1889 (year to date for the current year).
 * **Long-term average**: average annual or growing-season rainfall over 5, 10, 20 or 30 years ending in any year.
 * **% of average**: switches any view to a percentage of the 1961–1990 or 1991–2020 average (brown = drier, teal = wetter).
-* **250 mm and 300 mm rainfall lines** (average annual isohyets) for two chosen periods (1890–1919, 1920–1949,
-  1950–1979, 1961–1990, 1991–2020, last 30 years, last 10 years), drawn with Goyder's Line so you can see whether
-  the rainfall boundary has moved.
+* **300 mm rainfall lines** (average annual isohyets) for two chosen periods (1890–1919, 1920–1949,
+  1950–1979, 1961–1990, 1991–2020, last 30 years, last 10 years), drawn with Goyder's Line by default so you can see whether
+  the rainfall boundary has moved. A **250 mm** line (the 10-inch figure used in official sources) can be turned on under More options.
 * **Find my town** (SA localities and postcodes) and **click/tap anywhere** to see how far north or south of
   Goyder's Line the point is, its rainfall for the current view, and the long-term average.
-* Street map (OpenStreetMap, default) or satellite basemap, labelled reference towns, colour-blind-safe palettes
+* Satellite basemap with place names (street map as an option), labelled reference towns, colour-blind-safe palettes
   (viridis; BrBG for anomalies), and a legend with tick marks.
-* Controls are in a left-hand panel, in a simple order: find your town, choose what to show, pick the time. Advanced choices (the average period, how many years, the 250/300 mm line dates, shading) sit under **More options**, with sensible defaults. The default basemap is satellite imagery with place names, and a street map is one click away.
+* Controls are in a left-hand panel, in a simple order: find your town, choose what to show, pick the time. Advanced choices (the average period, how many years, the 300 mm line dates, the optional 250 mm line, shading) sit under **More options**, with sensible defaults. The default basemap is satellite imagery with place names, and a street map is one click away.
 * The view is saved in the URL hash (e.g. `#view=annual&year=2019&display=pct`), so you can link to or embed a
   specific map. Add `?compact` to hide the introduction text.
 

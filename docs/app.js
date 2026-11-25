@@ -23,7 +23,7 @@
   let M, G, map, rainLayer, lineGroup, isoGroup, townGroup, pickMarker, places = [], gyLines = [], southPoly = [];
   const cache = new Map();
   const S = { view: 'multi', year: null, month: null, len: 30, end: null, measure: 'annual', display: 'mm', baseline: '1991-2020',
-    eraA: null, eraB: null, line: true, iso: true, towns: true, opacity: 0.75 };
+    eraA: null, eraB: null, line: true, iso: true, iso250: false, towns: true, opacity: 0.75 };
   let current = null;
   let renderToken = 0;
 
@@ -155,9 +155,10 @@
     if (S.line) keys.push(`<span class="key"><i style="border-color:#8B0000;box-shadow:0 0 0 1px #fff"></i>Goyder's Line (1865)</span>`);
     if (S.iso) {
       [S.eraA, S.eraB].forEach((e, k) => {
-        if (e != null) keys.push(`<span class="key"><i style="border-color:${ERA_STYLE[k].color}"></i>${eraLabel(e)}: 250&nbsp;mm solid, 300&nbsp;mm dashed</span>`);
+        if (e != null) keys.push(`<span class="key"><i style="border-color:${ERA_STYLE[k].color}"></i>${eraLabel(e)}: 300&nbsp;mm</span>`);
       });
     }
+    if (S.iso250) keys.push(`<span class="key"><i style="border-color:#333;border-top-style:dashed"></i>250&nbsp;mm (optional)</span>`);
     $('legend').innerHTML = `<div class="ttl">${ttl}</div><div class="bar">${pal.map((c) => `<span style="background:${c}"></span>`).join('')}</div>` +
       `<div class="ticks">${ticks}<span style="left:100%">${unit}</span></div>` + (keys.length ? `<div class="keys">${keys.join('')}</div>` : '');
     const t = $('legend').querySelector('.ticks');
@@ -224,9 +225,9 @@
     $('sel-len').value = String(S.len);
     $('measure-wrap').style.display = $('len-wrap').style.display = S.view === 'multi' ? '' : 'none';
     $('prev').disabled = !canStep(-1); $('next').disabled = !canStep(1);
-    $('t-line').checked = S.line; $('t-iso').checked = S.iso; $('t-towns').checked = S.towns;
+    $('t-line').checked = S.line; $('t-iso').checked = S.iso; $('t-iso250').checked = S.iso250; $('t-towns').checked = S.towns;
     $('eraA').value = S.eraA ?? ''; $('eraB').value = S.eraB ?? '';
-    $('eraA').disabled = $('eraB').disabled = !S.iso;
+    $('eraA').disabled = $('eraB').disabled = !(S.iso || S.iso250);
     $('baseline').value = S.baseline;
     $('opacity').value = String(S.opacity);
   }
@@ -327,18 +328,23 @@
   let isoData = null;
   function drawIso() {
     isoGroup.clearLayers();
-    if (!S.iso || !isoData) return;
-    [S.eraA, S.eraB].forEach((e, k) => {
-      if (e == null || e === '') return;
-      const label = eraLabel(e);
-      isoData.features.filter((f) => f.properties.era === label).forEach((f) => {
-        const dashed = f.properties.mm !== 250;
-        const latlngs = f.geometry.coordinates.map((l) => l.map(([x, y]) => [y, x]));
-        window.L.polyline(latlngs, { pane: 'iso', color: '#fff', weight: 5, opacity: 0.9, interactive: false }).addTo(isoGroup);
-        window.L.polyline(latlngs, { pane: 'iso', color: ERA_STYLE[k].color, weight: 2.5, dashArray: dashed ? '7 6' : null })
-          .bindTooltip(`${f.properties.mm} mm average annual rainfall, ${label}`, { sticky: true }).addTo(isoGroup);
+    if ((!S.iso && !S.iso250) || !isoData) return;
+    const drawLevel = (mm, dashed) => {
+      [S.eraA, S.eraB].forEach((e, k) => {
+        if (e == null || e === '') return;
+        const label = eraLabel(e);
+        isoData.features.filter((f) => f.properties.era === label && f.properties.mm === mm).forEach((f) => {
+          const latlngs = f.geometry.coordinates.map((l) => l.map(([x, y]) => [y, x]));
+          const casing = dashed ? 4 : 5, weight = dashed ? 2 : 2.8;
+          window.L.polyline(latlngs, { pane: 'iso', color: '#fff', weight: casing, opacity: 0.9, dashArray: dashed ? '7 6' : null, interactive: false }).addTo(isoGroup);
+          window.L.polyline(latlngs, { pane: 'iso', color: ERA_STYLE[k].color, weight, dashArray: dashed ? '7 6' : null })
+            .bindTooltip(`${mm} mm average annual rainfall, ${label}`, { sticky: true }).addTo(isoGroup);
+        });
       });
-    });
+    };
+    // Draw the optional 250 mm line first so the default 300 mm line stays on top.
+    if (S.iso250) drawLevel(250, true);
+    if (S.iso) drawLevel(300, false);
   }
   function drawLine(gj) {
     window.L.geoJSON(gj, { pane: 'line', style: { color: '#fff', weight: 10, opacity: 0.95 }, interactive: false }).addTo(lineGroup);
@@ -395,10 +401,13 @@
     input.addEventListener('blur', () => setTimeout(() => { hits = []; show(); }, 150));
   }
 
-  const HASH_KEYS = ['view', 'year', 'month', 'len', 'end', 'measure', 'display', 'baseline', 'eraA', 'eraB'];
+  const HASH_KEYS = ['view', 'year', 'month', 'len', 'end', 'measure', 'display', 'baseline', 'eraA', 'eraB', 'iso', 'iso250'];
   function writeHash() {
     const p = new URLSearchParams();
-    HASH_KEYS.forEach((k) => { if (S[k] != null && S[k] !== '') p.set(k, S[k]); });
+    HASH_KEYS.forEach((k) => {
+      if (S[k] == null || S[k] === '') return;
+      p.set(k, (typeof S[k] === 'boolean') ? (S[k] ? '1' : '0') : S[k]);
+    });
     history.replaceState(null, '', '#' + p.toString());
   }
   function readHash() {
@@ -406,7 +415,8 @@
     HASH_KEYS.forEach((k) => {
       if (!p.has(k)) return;
       const v = p.get(k);
-      S[k] = ['year', 'month', 'len', 'end', 'eraA', 'eraB'].includes(k) ? (v === '' ? null : +v) : v;
+      if (k === 'iso' || k === 'iso250') S[k] = !(v === '0' || v === 'false' || v === '');
+      else S[k] = ['year', 'month', 'len', 'end', 'eraA', 'eraB'].includes(k) ? (v === '' ? null : +v) : v;
     });
     if (new URLSearchParams(location.search).has('compact')) document.body.classList.add('compact');
   }
@@ -423,6 +433,8 @@
     if (S.eraA == null || S.eraA >= ne) S.eraA = 0;
     if (S.eraB == null || S.eraB >= ne) S.eraB = M.isohyetEras.findIndex((e) => /^Last 30/.test(e.label));
     if (!['mm', 'pct'].includes(S.display)) S.display = 'mm';
+    S.iso = S.iso !== false && S.iso !== 0 && S.iso !== '0';
+    S.iso250 = S.iso250 === true || S.iso250 === 1 || S.iso250 === '1';
   }
 
   function fitSA() {
@@ -476,6 +488,7 @@
     };
     $('t-line').onchange = (e) => { S.line = e.target.checked; toggle(lineGroup, S.line); current && drawLegend(current); };
     $('t-iso').onchange = (e) => { S.iso = e.target.checked; refresh(); };
+    $('t-iso250').onchange = (e) => { S.iso250 = e.target.checked; refresh(); };
     $('t-towns').onchange = (e) => { S.towns = e.target.checked; toggle(townGroup, S.towns); };
     $('opacity').oninput = (e) => { S.opacity = +e.target.value; rainLayer && rainLayer.setOpacity(S.opacity); };
     const openBtn = $('open-options');

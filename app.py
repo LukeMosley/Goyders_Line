@@ -95,8 +95,10 @@ with st.sidebar:
     st.caption("Source: State Library of South Australia, B 496")
     st.markdown(
         "Surveyor-General of South Australia who, in 1865, "
-        "mapped the approximate northern limit of reliable rainfall for cropping "
-        "(~250–300 mm annual isohyet)."
+        "mapped the limit of reliable rainfall for cropping from the vegetation "
+        "(especially saltbush), not from a set rainfall total. Official sources "
+        "often compare it with the 10-inch (250 mm) line; on SILO maps it sits "
+        "closer to 300 mm average annual rainfall."
     )
 
 # ---------- rainfall legend (top-right) ----------
