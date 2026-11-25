@@ -1,0 +1,663 @@
+{
+ "title": "Goyder's Line rainfall data",
+ "source": "SILO gridded monthly rainfall, Queensland Government (Long Paddock), CC BY 4.0",
+ "changes": "Clipped to SA, summed to annual and growing-season (Apr-Oct) totals, averaged, rounded to 1 mm, contoured.",
+ "grid": {
+  "lonMin": 132.5,
+  "latMax": -29.5,
+  "res": 0.05,
+  "rows": 177,
+  "cols": 181,
+  "nodata": 65535,
+  "dtype": "uint16le",
+  "rowOrder": "north-to-south"
+ },
+ "scales": {
+  "annual": 1,
+  "gsr": 1,
+  "monthly": 1,
+  "clim": 0.1
+ },
+ "firstYear": 1889,
+ "monthlyFrom": 1991,
+ "lastComplete": {
+  "year": 2026,
+  "month": 10
+ },
+ "baselines": [
+  "1961-1990",
+  "1991-2020"
+ ],
+ "isohyetEras": [
+  {
+   "label": "1890\u20131919",
+   "start": 1890,
+   "end": 1919
+  },
+  {
+   "label": "1920\u20131949",
+   "start": 1920,
+   "end": 1949
+  },
+  {
+   "label": "1950\u20131979",
+   "start": 1950,
+   "end": 1979
+  },
+  {
+   "label": "1961\u20131990",
+   "start": 1961,
+   "end": 1990
+  },
+  {
+   "label": "1991\u20132020",
+   "start": 1991,
+   "end": 2020
+  },
+  {
+   "label": "Last 30 years (1996\u20132025)",
+   "start": 1996,
+   "end": 2025
+  },
+  {
+   "label": "Last 10 years (2016\u20132025)",
+   "start": 2016,
+   "end": 2025
+  }
+ ],
+ "isohyetLevels": [
+  250,
+  300
+ ],
+ "years": {
+  "1889": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1890": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1891": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1892": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1893": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1894": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1895": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1896": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1897": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1898": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1899": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1900": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1901": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1902": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1903": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1904": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1905": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1906": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1907": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1908": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1909": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1910": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1911": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1912": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1913": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1914": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1915": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1916": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1917": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1918": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1919": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1920": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1921": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1922": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1923": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1924": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1925": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1926": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1927": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1928": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1929": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1930": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1931": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1932": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1933": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1934": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1935": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1936": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1937": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1938": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1939": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1940": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1941": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1942": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1943": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1944": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1945": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1946": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1947": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1948": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1949": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1950": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1951": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1952": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1953": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1954": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1955": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1956": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1957": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1958": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1959": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1960": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1961": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1962": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1963": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1964": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1965": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1966": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1967": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1968": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1969": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1970": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1971": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1972": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1973": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1974": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1975": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1976": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1977": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1978": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1979": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1980": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1981": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1982": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1983": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1984": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1985": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1986": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1987": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1988": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1989": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1990": {
+   "months": 12,
+   "gsrMonths": 7
+  },
+  "1991": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "1992": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "1993": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "1994": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "1995": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "1996": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "1997": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "1998": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "1999": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2000": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2001": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2002": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2003": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2004": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2005": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2006": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2007": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2008": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2009": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2010": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2011": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2012": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2013": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2014": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2015": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2016": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2017": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2018": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2019": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2020": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2021": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2022": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2023": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2024": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2025": {
+   "months": 12,
+   "gsrMonths": 7,
+   "monthly": true
+  },
+  "2026": {
+   "months": 10,
+   "gsrMonths": 7,
+   "monthly": true
+  }
+ },
+ "updated": "2026-11-25"
+}

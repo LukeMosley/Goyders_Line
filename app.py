@@ -89,7 +89,7 @@ with st.sidebar:
     if PORTRAIT_PATH.exists():
         st.image(
             str(PORTRAIT_PATH),
-            caption="George Woodroffe Goyder (1820–1898)",
+            caption="George Woodroffe Goyder (1826–1898)",
             use_container_width=True,
         )
     st.caption("Source: State Library of South Australia, B 496")
