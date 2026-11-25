@@ -54,7 +54,7 @@ the rest of the window, so the whole of South Australia fits on a typical laptop
 ```
 
 720 px high is enough on a desktop or laptop because the map uses almost the full iframe height. On a phone the
-iframe needs to be taller (about 1100 px) so the map and the controls below it both fit. The page is static, so it
+iframe needs to be taller (about 1200 px) so the map and the controls below it both fit. The page is static, so it
 never "sleeps" (unlike Streamlit Community Cloud), loads in about a second, and works full-width on phones.
 `docs/embed-example.html` shows the snippet on a test page.
 

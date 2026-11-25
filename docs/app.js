@@ -16,7 +16,9 @@
   };
   const ERA_STYLE = [{ color: '#111', label: 'black' }, { color: '#ff9f1c', label: 'gold' }];
   // All of South Australia (WA border to 141 E, NT border to the Limestone Coast).
-  const SA_BOUNDS = [[-38.2, 128.95], [-25.95, 141.05]];
+  // Agricultural SA plus the Far North (Ceduna to the Vic border, Mt Gambier to the NT border).
+  // Excludes the far-west Nullarbor/ocean so the farming country fills the map.
+  const SA_BOUNDS = [[-38.12, 132.35], [-26.05, 141.02]];
 
   let M, G, map, rainLayer, lineGroup, isoGroup, townGroup, pickMarker, places = [], gyLines = [], southPoly = [];
   const cache = new Map();
@@ -425,7 +427,7 @@
 
   function fitSA() {
     map.invalidateSize();
-    map.fitBounds(SA_BOUNDS, { paddingTopLeft: [16, 20], paddingBottomRight: [20, 96], maxZoom: 7, animate: false });
+    map.fitBounds(SA_BOUNDS, { paddingTopLeft: [4, 8], paddingBottomRight: [8, 88], animate: false });
   }
 
   async function init() {
@@ -433,7 +435,7 @@
     M = await getJSON('manifest.json');
     G = M.grid;
     validateState();
-    map = window.L.map('map', { zoomControl: false, minZoom: 5, maxZoom: 13, zoomSnap: 0.5, tap: true, attributionControl: true });
+    map = window.L.map('map', { zoomControl: false, minZoom: 5, maxZoom: 13, zoomSnap: 0.25, zoomDelta: 0.5, tap: true, attributionControl: true });
     window.L.control.zoom({ position: 'topleft' }).addTo(map);
     window.L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);
     map.createPane('rain').style.zIndex = 350;
