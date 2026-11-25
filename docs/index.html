@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Goyder's Line &amp; South Australian rainfall</title>
+<meta name="description" content="Compare Goyder's Line (1865) with monthly, growing-season, annual and long-term rainfall across South Australia.">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header class="mob-head">
+    <h1>Goyder's Line &amp; SA rainfall</h1>
+    <button type="button" id="open-options" class="options-btn">Find your town / map options</button>
+  </header>
+
+  <div class="stage">
+    <div id="map" role="application" aria-label="Map of South Australian rainfall and Goyder's Line. Click or tap the map to see rainfall at a point."></div>
+    <div class="legend" id="legend" aria-live="polite"></div>
+  </div>
+
+  <aside class="panel" id="panel">
+    <div class="panel-inner">
+      <header class="desk-head">
+        <h1>Goyder's Line &amp; SA rainfall</h1>
+      </header>
+
+      <div class="goyder">
+        <img src="goyder-portrait.jpg" width="110" height="143" alt="George Woodroffe Goyder seated on a bench, about 1895">
+        <div>
+          <p>George Woodroffe Goyder (1826&ndash;1898), South Australia's Surveyor-General, mapped the limit of reliable rainfall from the vegetation (especially saltbush), not from a set rainfall total. Official sources often compare it with the 10-inch (250&nbsp;mm) line, but on these maps it sits closer to 300&nbsp;mm.</p>
+          <details class="more"><summary>More</summary>
+            <div class="more-body">
+              <p>During the 1863&ndash;66 drought he was asked to map &ldquo;the line of demarcation between that portion of the country where the rainfall has extended, and that where the drought prevails&rdquo;. His line, published in 1866, used the change in vegetation (especially saltbush) as a guide to long-term rainfall. It was ignored in the wet 1870s, when farming pushed north, and many of those farms failed in the dry years that followed.</p>
+              <p>The coloured map is SILO gridded rainfall (about 5&nbsp;km cells). The black and orange lines show the 300&nbsp;mm average annual rainfall contour in two periods you can choose, so you can see whether that boundary has moved since Goyder's time. A 250&nbsp;mm line (the 10-inch figure often used in official sources) can be turned on under More options. SILO is interpolated from rain gauges, which were sparse in the north before about 1900, so treat early-period lines as approximate.</p>
+            </div>
+          </details>
+          <p class="credit">Photo: State Library of South Australia, B&nbsp;496 (about 1895).</p>
+        </div>
+      </div>
+
+      <section class="step" aria-labelledby="s1">
+        <h2 id="s1"><span class="n">1</span> Find your town</h2>
+        <p class="hint">Type a town or postcode, or tap the map.</p>
+        <div class="search">
+          <label for="search" class="sr">Find a town or postcode</label>
+          <input id="search" type="search" placeholder="Town or postcode&hellip;" autocomplete="off" aria-autocomplete="list" aria-controls="search-results">
+          <ul id="search-results" role="listbox" hidden></ul>
+        </div>
+      </section>
+
+      <section class="step" aria-labelledby="s2">
+        <h2 id="s2"><span class="n">2</span> Choose what to show</h2>
+        <p class="hint">Colour the map by the rainfall that matters to you.</p>
+        <div class="tabs" role="tablist" aria-label="What to show">
+          <button type="button" role="tab" data-view="monthly">Rain this month</button>
+          <button type="button" role="tab" data-view="gsr">Growing season rain (Apr&ndash;Oct)</button>
+          <button type="button" role="tab" data-view="annual">Rain this year</button>
+          <button type="button" role="tab" data-view="multi">Long-term average</button>
+        </div>
+      </section>
+
+      <section class="step" aria-labelledby="s3">
+        <h2 id="s3"><span class="n">3</span> Pick the time</h2>
+        <p class="hint" id="time-hint">Use the arrows to step through months or years.</p>
+        <div class="period">
+          <button type="button" id="prev" class="step-btn" aria-label="Previous period">&#9664;</button>
+          <span id="period-selects"></span>
+          <button type="button" id="next" class="step-btn" aria-label="Next period">&#9654;</button>
+        </div>
+      </section>
+
+      <label class="compare">
+        <input type="checkbox" id="t-pct">
+        <span>Compare to normal (% of average)</span>
+      </label>
+      <p class="hint" id="pct-hint" hidden>Brown is drier than usual, teal is wetter.</p>
+
+      <div class="toggles">
+        <label><input type="checkbox" id="t-line" checked> Goyder's Line</label>
+        <label><input type="checkbox" id="t-iso" checked> 300&nbsp;mm rainfall lines</label>
+      </div>
+
+      <details class="advanced" id="advanced">
+        <summary>More options</summary>
+        <div class="adv-body">
+          <label id="measure-wrap">Average of
+            <select id="sel-measure" aria-label="Annual or growing-season average">
+              <option value="annual">Annual rainfall</option>
+              <option value="gsr">Growing season (Apr&ndash;Oct)</option>
+            </select>
+          </label>
+          <label id="len-wrap">Over
+            <select id="sel-len" aria-label="Number of years">
+              <option value="5">5 years</option>
+              <option value="10">10 years</option>
+              <option value="20">20 years</option>
+              <option value="30" selected>30 years</option>
+            </select>
+          </label>
+          <label>Compare against
+            <select id="baseline" aria-label="Average period"></select>
+          </label>
+          <label>300&nbsp;mm lines, first period
+            <select id="eraA" aria-label="First period for 300 mm rainfall lines"></select>
+          </label>
+          <label>Compared with
+            <select id="eraB" aria-label="Second period for 300 mm rainfall lines"></select>
+          </label>
+          <label><input type="checkbox" id="t-iso250"> Also show the 250&nbsp;mm line</label>
+          <label><input type="checkbox" id="t-towns" checked> Town labels</label>
+          <label class="opacity">Shading <input type="range" id="opacity" min="0" max="1" step="0.05" value="0.75"></label>
+        </div>
+      </details>
+
+      <footer class="foot">
+        <span id="status">Loading&hellip;</span>
+        <span class="attr">Rainfall: <a href="https://www.longpaddock.qld.gov.au/silo/" target="_blank" rel="noopener">SILO</a>, Queensland Government, CC&nbsp;BY&nbsp;4.0 (summed, averaged &amp; contoured by us).
+          Goyder's Line: SA Dept for Environment and Water. Towns: GeoNames (CC&nbsp;BY&nbsp;4.0).
+          <a href="https://github.com/LukeMosley/Goyders_Line" target="_blank" rel="noopener">About / code</a></span>
+      </footer>
+    </div>
+  </aside>
+</div>
+<script src="vendor/leaflet.js"></script>
+<script src="vendor/fflate.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
