@@ -41,10 +41,10 @@ import numpy as np
 
 SILO_URL = "https://s3-ap-southeast-2.amazonaws.com/silo-open-data/Official/annual/monthly_rain/{year}.monthly_rain.nc"
 
-# Grid window (SILO cell centres, 0.05 deg). Covers SA's farming country and
-# Goyder's Line, extended south to the Limestone Coast (Mt Gambier ~ -37.8).
-LON_MIN, LON_MAX = 132.5, 141.5
-LAT_MIN, LAT_MAX = -38.3, -29.5
+# Grid window (SILO cell centres, 0.05 deg). Covers the whole of South Australia:
+# WA border (129 E), NT border (26 S), the Limestone Coast (~ -38), and 141 E.
+LON_MIN, LON_MAX = 129.0, 141.0
+LAT_MIN, LAT_MAX = -38.3, -26.0
 RES = 0.05
 FIRST_YEAR = 1889          # first year of SILO data
 MONTHLY_FROM = 1991        # monthly maps kept from here (older months only feed totals/baselines)

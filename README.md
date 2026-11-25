@@ -32,6 +32,7 @@ What it shows:
   Goyder's Line the point is, its rainfall for the current view, and the long-term average.
 * Street map (OpenStreetMap, default) or satellite basemap, labelled reference towns, colour-blind-safe palettes
   (viridis; BrBG for anomalies), and a legend with tick marks.
+* Controls are in a left-hand panel, in a simple order: find your town, choose what to show, pick the time. Advanced choices (the average period, how many years, the 250/300 mm line dates, shading) sit under **More options**, with sensible defaults. The default basemap is satellite imagery with place names, and a street map is one click away.
 * The view is saved in the URL hash (e.g. `#view=annual&year=2019&display=pct`), so you can link to or embed a
   specific map. Add `?compact` to hide the introduction text.
 
@@ -40,24 +41,29 @@ Run it locally: `cd docs && python -m http.server 8000`, then open http://localh
 ### Embedding
 
 Once GitHub Pages is enabled (Settings → Pages → *Deploy from a branch* → `main` / `/docs`), the widget will be at
-`https://lukemosley.github.io/Goyders_Line/`. Embed it with:
+`https://lukemosley.github.io/Goyders_Line/`. The layout is a left-hand panel (about 320–340 px) with the map filling
+the rest of the window, so the whole of South Australia fits on a typical laptop. On phones the map sits first
+(about 65% of the screen height) with the controls underneath. Embed it with:
 
 ```html
 <iframe src="https://lukemosley.github.io/Goyders_Line/"
         title="Goyder's Line and South Australian rainfall map"
         class="goyder-map" loading="lazy"
-        style="width:100%;height:780px;border:0;display:block"></iframe>
-<style>@media (max-width:600px){.goyder-map{height:1000px!important}}</style>
+        style="width:100%;height:720px;border:0;display:block"></iframe>
+<style>@media (max-width:699px){.goyder-map{height:1200px!important}}</style>
 ```
 
-The page is static, so it never "sleeps" (unlike Streamlit Community Cloud), loads in about a second,
-and works full-width on phones. `docs/embed-example.html` shows the snippet on a test page.
+720 px high is enough on a desktop or laptop because the map uses almost the full iframe height. On a phone the
+iframe needs to be taller (about 1100 px) so the map and the controls below it both fit. The page is static, so it
+never "sleeps" (unlike Streamlit Community Cloud), loads in about a second, and works full-width on phones.
+`docs/embed-example.html` shows the snippet on a test page.
 
 ### How the data are built
 
 `scripts/update_rainfall.py` reads SILO's yearly NetCDF files of gridded monthly rainfall
 (`https://s3-ap-southeast-2.amazonaws.com/silo-open-data/Official/annual/monthly_rain/YYYY.monthly_rain.nc`, 0.05° ≈ 5 km).
-It clips each file to 132.5–141.5 °E and 29.5–38.3 °S, then writes:
+It clips each file to 129–141 °E and 26.0–38.3 °S (the whole of South Australia, including the Far North and
+the Limestone Coast), then writes:
 
 * `annual/YYYY.bin.gz` and `gsr/YYYY.bin.gz`: calendar-year and April–October totals for **every year from 1889**.
 * `monthly/YYYY.bin.gz`: 12 monthly grids for **1991 onward** only. Older months are used for the totals and baselines
@@ -69,7 +75,7 @@ It clips each file to 132.5–141.5 °E and 29.5–38.3 °S, then writes:
   are never hard-coded.
 
 Grids are little-endian `uint16` (row 0 = north, 65535 = no data) and gzip-compressed. The widget decompresses them
-in the browser. Altogether they take about 12 MB, plus about 0.3 MB a month of new data.
+in the browser. Altogether they take about 18 MB, plus about 0.3 MB a month of new data.
 
 ```bash
 pip install -r scripts/requirements-data.txt

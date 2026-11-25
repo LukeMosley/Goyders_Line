@@ -3,11 +3,11 @@
  "source": "SILO gridded monthly rainfall, Queensland Government (Long Paddock), CC BY 4.0",
  "changes": "Clipped to SA, summed to annual and growing-season (Apr-Oct) totals, averaged, rounded to 1 mm, contoured.",
  "grid": {
-  "lonMin": 132.5,
-  "latMax": -29.5,
+  "lonMin": 129.0,
+  "latMax": -26.0,
   "res": 0.05,
-  "rows": 177,
-  "cols": 181,
+  "rows": 247,
+  "cols": 241,
   "nodata": 65535,
   "dtype": "uint16le",
   "rowOrder": "north-to-south"

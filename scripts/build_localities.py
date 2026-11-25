@@ -14,7 +14,8 @@ URL = "https://download.geonames.org/export/zip/AU.zip"
 REFERENCE = ["Ceduna", "Streaky Bay", "Wudinna", "Kimba", "Cowell", "Port Lincoln", "Whyalla", "Port Augusta",
              "Quorn", "Hawker", "Leigh Creek", "Orroroo", "Peterborough", "Jamestown", "Port Pirie", "Kadina",
              "Burra", "Clare", "Eudunda", "Morgan", "Swan Reach", "Loxton", "Pinnaroo", "Murray Bridge", "Adelaide",
-             "Keith", "Naracoorte", "Mount Gambier", "Renmark", "Tumby Bay", "Minnipa", "Snowtown"]
+             "Keith", "Naracoorte", "Mount Gambier", "Renmark", "Tumby Bay", "Minnipa", "Snowtown",
+             "Coober Pedy", "Roxby Downs", "Woomera", "Oodnadatta", "Marla", "Kingscote"]
 
 
 def main() -> int:
