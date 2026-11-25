@@ -442,6 +442,528 @@
     map.fitBounds(SA_BOUNDS, { paddingTopLeft: [4, 8], paddingBottomRight: [8, 88], animate: false });
   }
 
+  let baseLayers = { osm: null, sat: null };
+
+  const SITE_URL = 'https://lukemosley.github.io/Goyders_Line/';
+  const isIOS = () => /iP(ad|hone|od)/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  function viewTitle(L) {
+    const pct = S.display === 'pct';
+    return pct ? `${L.title} as % of ${L.baseLabel.replace(/^.*average /, '')} average` : L.title;
+  }
+  function exportFilename() {
+    const bits = ['goyders-line'];
+    if (S.view === 'monthly') bits.push('monthly', `${S.year}-${String(S.month).padStart(2, '0')}`);
+    else if (S.view === 'annual') bits.push('annual', String(S.year));
+    else if (S.view === 'gsr') bits.push('gsr', String(S.year));
+    else bits.push(S.measure === 'gsr' ? 'average-gsr' : 'average-annual', `${S.end - S.len + 1}-${S.end}`);
+    if (S.display === 'pct') bits.push('pct');
+    return bits.join('_') + '.png';
+  }
+  function wrapText(ctx, text, maxWidth) {
+    const words = String(text).split(/\s+/);
+    const lines = [];
+    let line = '';
+    for (const w of words) {
+      const t = line ? line + ' ' + w : w;
+      if (ctx.measureText(t).width > maxWidth && line) { lines.push(line); line = w; }
+      else line = t;
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+  function toast(msg, ms) {
+    let t = $('png-toast');
+    if (!t) {
+      t = el('div', { id: 'png-toast', className: 'png-toast', role: 'status' });
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.hidden = false;
+    t.classList.add('show');
+    clearTimeout(toast._tm);
+    if (ms !== 0) toast._tm = setTimeout(() => { t.classList.remove('show'); t.hidden = true; }, ms || 4000);
+  }
+  function setExporting(on) {
+    document.querySelectorAll('.png-btn, .png-control a').forEach((b) => {
+      b.classList.toggle('busy', on);
+      b.setAttribute('aria-busy', String(on));
+      if (b.tagName === 'BUTTON' || b.tagName === 'A') {
+        if (on) { if (!b.dataset.label) b.dataset.label = b.textContent; b.textContent = 'Saving\u2026'; }
+        else if (b.dataset.label) b.textContent = b.dataset.label;
+      }
+    });
+  }
+
+  function waitForTiles(ms) {
+    const limit = ms || 5000;
+    return new Promise((resolve) => {
+      const t0 = performance.now();
+      const check = () => {
+        let loading = 0;
+        map.eachLayer((l) => {
+          if (!l._tiles) return;
+          Object.values(l._tiles).forEach((t) => {
+            const img = t.el;
+            if (img && img.tagName === 'IMG' && t.active && !img.complete) loading++;
+          });
+        });
+        const rain = rainLayer && rainLayer.getElement();
+        if (rain && !rain.complete) loading++;
+        if (loading === 0 || performance.now() - t0 > limit) resolve();
+        else setTimeout(check, 80);
+      };
+      check();
+    });
+  }
+
+  function landSeaCanvas() {
+    const { rows, cols } = G;
+    const cv = el('canvas', { width: cols, height: rows });
+    const ctx = cv.getContext('2d');
+    const img = ctx.createImageData(cols, rows);
+    const src = current && current.values;
+    for (let i = 0; i < rows * cols; i++) {
+      const o = i * 4;
+      const land = src ? Number.isFinite(src[i]) : false;
+      if (land) { img.data[o] = 230; img.data[o + 1] = 220; img.data[o + 2] = 200; img.data[o + 3] = 255; }
+      else { img.data[o] = 142; img.data[o + 1] = 182; img.data[o + 2] = 200; img.data[o + 3] = 255; }
+    }
+    ctx.putImageData(img, 0, 0);
+    return cv;
+  }
+
+  function overlayRect(bounds, scale) {
+    const sw = map.latLngToContainerPoint(bounds.getSouthWest());
+    const ne = map.latLngToContainerPoint(bounds.getNorthEast());
+    return { x: sw.x * scale, y: ne.y * scale, w: (ne.x - sw.x) * scale, h: (sw.y - ne.y) * scale };
+  }
+
+  async function paintBasemap(ctx, scale) {
+    const mapRect = map.getContainer().getBoundingClientRect();
+    const layers = [];
+    map.eachLayer((l) => { if (l._tiles) layers.push(l); });
+    layers.sort((a, b) => {
+      const za = parseInt((a.getPane() && a.getPane().style.zIndex) || 200, 10);
+      const zb = parseInt((b.getPane() && b.getPane().style.zIndex) || 200, 10);
+      return za - zb;
+    });
+    const jobs = [];
+    layers.forEach((layer) => {
+      Object.values(layer._tiles).forEach((tile) => {
+        const img = tile.el;
+        if (!img || img.tagName !== 'IMG' || !img.complete || img.naturalWidth === 0) return;
+        const r = img.getBoundingClientRect();
+        if (r.right < mapRect.left || r.left > mapRect.right || r.bottom < mapRect.top || r.top > mapRect.bottom) return;
+        jobs.push({ el: img, url: img.currentSrc || img.src, dx: r.left - mapRect.left, dy: r.top - mapRect.top, dw: r.width, dh: r.height });
+      });
+    });
+    if (!jobs.length) return false;
+
+    const W = map.getSize().x * scale, H = map.getSize().y * scale;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, W, H);
+    ctx.clip();
+
+    const tryDom = () => {
+      const t = document.createElement('canvas');
+      t.width = t.height = 2;
+      const c = t.getContext('2d');
+      c.drawImage(jobs[0].el, 0, 0, 2, 2);
+      c.getImageData(0, 0, 1, 1);
+      jobs.forEach((j) => ctx.drawImage(j.el, j.dx * scale, j.dy * scale, j.dw * scale, j.dh * scale));
+    };
+    try {
+      tryDom();
+      ctx.restore();
+      return true;
+    } catch (e) { /* tainted — refetch with CORS */ }
+
+    try {
+      const bitmaps = await Promise.all(jobs.map(async (j) => {
+        const r = await fetch(j.url, { mode: 'cors' });
+        if (!r.ok) throw new Error('tile ' + r.status);
+        return { bmp: await createImageBitmap(await r.blob()), j };
+      }));
+      bitmaps.forEach(({ bmp, j }) => {
+        ctx.drawImage(bmp, j.dx * scale, j.dy * scale, j.dw * scale, j.dh * scale);
+        if (bmp.close) bmp.close();
+      });
+      ctx.restore();
+      return true;
+    } catch (e) {
+      ctx.restore();
+      return false;
+    }
+  }
+
+  function paintVectors(ctx, scale) {
+    const isLL = (p) => p && (typeof p.lat === 'number' || typeof p.lat === 'function');
+    const ringsOf = (latlngs) => {
+      if (!latlngs || !latlngs.length) return [];
+      if (isLL(latlngs[0])) return [latlngs];
+      if (Array.isArray(latlngs[0]) && isLL(latlngs[0][0])) return latlngs;
+      return latlngs.flatMap(ringsOf);
+    };
+    const stroke = (latlngs, color, width, dash) => {
+      if (!latlngs || !latlngs.length) return;
+      const rings = ringsOf(latlngs);
+      ctx.beginPath();
+      rings.forEach((ring) => {
+        ring.forEach((ll, i) => {
+          const p = map.latLngToContainerPoint(ll);
+          const x = p.x * scale, y = p.y * scale;
+          i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+        });
+      });
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width * scale;
+      ctx.setLineDash((dash || []).map((d) => d * scale));
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      ctx.setLineDash([]);
+    };
+    const toLatLngs = (layer) => {
+      if (layer.getLatLngs) return layer.getLatLngs();
+      if (layer instanceof window.L.GeoJSON) {
+        const acc = [];
+        layer.eachLayer((l) => { if (l.getLatLngs) acc.push(l.getLatLngs()); });
+        return acc;
+      }
+      return null;
+    };
+    // Isohyets (already include casing as separate polylines in isoGroup)
+    if (isoGroup && map.hasLayer(isoGroup)) {
+      isoGroup.eachLayer((l) => {
+        const ll = toLatLngs(l);
+        if (!ll) return;
+        const st = l.options || {};
+        stroke(ll, st.color || '#111', st.weight || 2.5, st.dashArray ? String(st.dashArray).split(/[,\s]+/).map(Number) : null);
+      });
+    }
+    // Goyder's Line
+    if (lineGroup && map.hasLayer(lineGroup) && S.line) {
+      lineGroup.eachLayer((l) => {
+        const walk = (ly) => {
+          if (ly.eachLayer && !ly.getLatLngs) { ly.eachLayer(walk); return; }
+          const ll = toLatLngs(ly);
+          if (!ll) return;
+          const st = ly.options || {};
+          stroke(ll, st.color || '#8B0000', st.weight || 5, null);
+        };
+        walk(l);
+      });
+    }
+    // Town markers + labels
+    const drawTown = (ly) => {
+      if (!ly.getLatLng) return;
+      const ll = ly.getLatLng();
+      const p = map.latLngToContainerPoint(ll);
+      const x = p.x * scale, y = p.y * scale;
+      const r = (ly.options.radius || 3.5) * scale;
+      ctx.beginPath();
+      ctx.arc(x, y, r + scale, 0, Math.PI * 2);
+      ctx.fillStyle = ly.options.color || '#111';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = ly.options.fillColor || '#fff';
+      ctx.fill();
+      const tip = ly.getTooltip && ly.getTooltip();
+      const text = tip && tip.getContent && tip.getContent();
+      if (!text) return;
+      const fs = 11 * scale;
+      ctx.font = `700 ${fs}px system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif`;
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'left';
+      const padX = 3 * scale, padY = 1.5 * scale;
+      const tw = ctx.measureText(text).width;
+      const lx = x + 4 * scale + r, ly_ = y;
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+      ctx.lineWidth = 1 * scale;
+      const rx = 2 * scale;
+      const bx = lx - padX, by = ly_ - fs / 2 - padY, bw = tw + padX * 2, bh = fs + padY * 2;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(bx, by, bw, bh, rx);
+      else ctx.rect(bx, by, bw, bh);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#111';
+      ctx.fillText(text, lx, ly_);
+    };
+    if (S.towns && townGroup && map.hasLayer(townGroup)) townGroup.eachLayer(drawTown);
+    if (S.towns && minorGroup && map.hasLayer(minorGroup)) minorGroup.eachLayer(drawTown);
+  }
+
+  function paintScaleBar(ctx, scale, originX, originY, mapW, mapH) {
+    const maxCss = 100;
+    const midY = map.getSize().y / 2;
+    const mpp = map.distance(map.containerPointToLatLng([0, midY]), map.containerPointToLatLng([maxCss, midY])) / maxCss;
+    const maxM = mpp * maxCss;
+    const stops = [1, 2, 3, 5, 10, 20, 30, 50, 100, 200, 300, 500, 1000, 2000, 3000, 5000,
+      10000, 20000, 30000, 50000, 100000, 200000, 300000, 500000, 1000000];
+    let metres = stops[0];
+    for (const s of stops) if (s <= maxM) metres = s;
+    const px = (metres / mpp) * scale;
+    const label = metres >= 1000 ? `${metres / 1000} km` : `${metres} m`;
+    const x = originX + 10 * scale, y = originY + mapH - 18 * scale;
+    ctx.save();
+    ctx.strokeStyle = '#111';
+    ctx.fillStyle = '#111';
+    ctx.lineWidth = 2 * scale;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 5 * scale);
+    ctx.lineTo(x, y);
+    ctx.lineTo(x + px, y);
+    ctx.lineTo(x + px, y - 5 * scale);
+    ctx.stroke();
+    ctx.font = `600 ${11 * scale}px system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    const tw = ctx.measureText(label).width;
+    ctx.fillRect(x + px / 2 - tw / 2 - 3 * scale, y - 20 * scale, tw + 6 * scale, 13 * scale);
+    ctx.fillStyle = '#111';
+    ctx.fillText(label, x + px / 2, y - 7 * scale);
+    ctx.restore();
+  }
+
+  function paintLegendBox(ctx, L, scale, boxX, boxY, boxW) {
+    const pct = S.display === 'pct';
+    const br = pct ? BREAKS.pct : BREAKS[L.kind], pal = pct ? DIVERGE : RAIN;
+    const unit = pct ? '%' : 'mm';
+    const pad = 8 * scale;
+    const barH = 10 * scale;
+    const innerW = boxW - pad * 2;
+    const keyFont = `${11 * scale}px system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif`;
+    const keys = [];
+    if (S.line) keys.push({ color: '#8B0000', dash: false, text: "Goyder's Line (1865)" });
+    if (S.iso) {
+      [S.eraA, S.eraB].forEach((e, k) => {
+        if (e != null) keys.push({ color: ERA_STYLE[k].color, dash: false, text: `${eraLabel(e)}: 300 mm` });
+      });
+    }
+    if (S.iso250) keys.push({ color: '#333', dash: true, text: '250 mm (optional)' });
+    ctx.font = keyFont;
+    const keyLines = keys.map((k) => ({ k, lines: wrapText(ctx, k.text, innerW - 22 * scale) }));
+    const keyH = keyLines.reduce((h, item) => h + item.lines.length * 13 * scale, 0);
+    const boxH = pad + barH + 16 * scale + keyH + pad;
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,0.94)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineWidth = 1;
+    if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(boxX, boxY, boxW, boxH, 6 * scale); ctx.fill(); ctx.stroke(); }
+    else { ctx.fillRect(boxX, boxY, boxW, boxH); ctx.strokeRect(boxX, boxY, boxW, boxH); }
+    ctx.font = `${10 * scale}px system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif`;
+    const unitW = ctx.measureText(unit).width + 4 * scale;
+    const barW = innerW - unitW;
+    const barY = boxY + pad;
+    const slot = barW / pal.length;
+    pal.forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(boxX + pad + i * slot, barY, slot, barH); });
+    ctx.strokeStyle = '#666';
+    ctx.strokeRect(boxX + pad, barY, barW, barH);
+    ctx.fillStyle = '#2B2B2B';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    br.forEach((b, i) => {
+      if (i % 2 !== 0) return;
+      ctx.fillText(String(b), boxX + pad + ((i + 1) / pal.length) * barW, barY + barH + 2 * scale);
+    });
+    ctx.textAlign = 'left';
+    ctx.fillText(unit, boxX + pad + barW + 3 * scale, barY + barH + 2 * scale);
+    ctx.textAlign = 'left';
+    ctx.font = keyFont;
+    let ky = barY + barH + 16 * scale;
+    keyLines.forEach((item) => {
+      ctx.strokeStyle = item.k.color;
+      ctx.lineWidth = 3 * scale;
+      ctx.setLineDash(item.k.dash ? [5 * scale, 4 * scale] : []);
+      ctx.beginPath();
+      ctx.moveTo(boxX + pad, ky + 6 * scale);
+      ctx.lineTo(boxX + pad + 18 * scale, ky + 6 * scale);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#5b5b5b';
+      ctx.textBaseline = 'middle';
+      item.lines.forEach((ln, i) => {
+        ctx.fillText(ln, boxX + pad + 22 * scale, ky + 6 * scale + i * 13 * scale);
+      });
+      ky += item.lines.length * 13 * scale;
+    });
+    ctx.restore();
+    return boxH;
+  }
+
+  function basemapCredit(basemapOk) {
+    if (!basemapOk) return 'Basemap omitted (map tiles could not be included in this image).';
+    if (baseLayers.osm && map.hasLayer(baseLayers.osm)) return 'Map tiles \u00a9 OpenStreetMap contributors.';
+    return 'Imagery \u00a9 Esri, Maxar, Earthstar Geographics.';
+  }
+
+  async function buildPng() {
+    if (!current || !map) throw new Error('The map is still loading.');
+    await waitForTiles(5000);
+    const size = map.getSize();
+    const scale = 2;
+    const mapW = Math.round(size.x * scale), mapH = Math.round(size.y * scale);
+    // Probe header/footer heights by laying out text on a scratch context.
+    const scratch = el('canvas', { width: 10, height: 10 }).getContext('2d');
+    const title = viewTitle(current);
+    scratch.font = `700 ${18 * scale}px system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif`;
+    const titleLines = wrapText(scratch, title, mapW - 32 * scale);
+    const headerH = (14 + 22 + titleLines.length * 22 + 12) * scale;
+    const credit = [
+      'Rainfall: SILO, Queensland Government, CC BY 4.0 (summed, averaged and contoured).',
+      "Goyder's Line: SA Department for Environment and Water.",
+      basemapCredit(true),
+      SITE_URL,
+    ];
+    scratch.font = `${10 * scale}px system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif`;
+    // footer sized after we know whether the basemap painted
+    const mapCv = el('canvas', { width: mapW, height: mapH });
+    const mctx = mapCv.getContext('2d');
+    mctx.fillStyle = '#8eb6c8';
+    mctx.fillRect(0, 0, mapW, mapH);
+
+    const basemapOk = await paintBasemap(mctx, scale);
+    if (!basemapOk) {
+      const ls = landSeaCanvas();
+      const { rows, res, lonMin, latMax, cols } = G;
+      const north = latMax + res / 2, south = latMax - (rows - 1) * res - res / 2;
+      const west = lonMin - res / 2, east = lonMin + (cols - 1) * res + res / 2;
+      const r = overlayRect(window.L.latLngBounds([south, west], [north, east]), scale);
+      mctx.drawImage(ls, r.x, r.y, r.w, r.h);
+    }
+    if (rainLayer) {
+      const img = rainLayer.getElement();
+      if (img && img.complete && img.naturalWidth) {
+        const r = overlayRect(rainLayer.getBounds(), scale);
+        mctx.globalAlpha = S.opacity;
+        mctx.drawImage(img, r.x, r.y, r.w, r.h);
+        mctx.globalAlpha = 1;
+      }
+    }
+    paintVectors(mctx, scale);
+    paintScaleBar(mctx, scale, 0, 0, mapW, mapH);
+    const legendW = Math.min(260 * scale, mapW * 0.42);
+    const tmpH = paintLegendBox(mctx, current, scale, mapW, 0, legendW); // measure? we'll draw at bottom-right
+    // Redraw legend in the right place — first call above drew off-canvas; draw properly:
+    // Clear the accidental off-canvas draw is unnecessary if x = mapW. Draw at bottom-right.
+    const boxX = mapW - legendW - 10 * scale;
+    const boxY = mapH - tmpH - 10 * scale;
+    paintLegendBox(mctx, current, scale, boxX, Math.max(8 * scale, boxY), legendW);
+
+    const creditLines = [
+      'Rainfall: SILO, Queensland Government, CC BY 4.0 (summed, averaged and contoured).',
+      "Goyder's Line: SA Department for Environment and Water.",
+      basemapCredit(basemapOk),
+      SITE_URL,
+    ];
+    scratch.font = `${10 * scale}px system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif`;
+    const footerLines = creditLines.flatMap((c) => wrapText(scratch, c, mapW - 32 * scale));
+    const footerH = (16 + footerLines.length * 14 + 12) * scale;
+
+    const out = el('canvas', { width: mapW, height: headerH + mapH + footerH });
+    const ctx = out.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, out.width, out.height);
+    // header
+    ctx.fillStyle = '#1F5F6B';
+    ctx.fillRect(0, 0, mapW, headerH);
+    ctx.fillStyle = '#fff';
+    ctx.font = `600 ${12 * scale}px system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif`;
+    ctx.textBaseline = 'top';
+    ctx.fillText("Goyder's Line & SA rainfall", 16 * scale, 12 * scale);
+    ctx.font = `700 ${18 * scale}px system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif`;
+    titleLines.forEach((ln, i) => ctx.fillText(ln, 16 * scale, (14 + 20 + i * 22) * scale));
+    ctx.drawImage(mapCv, 0, headerH);
+    // footer
+    const fy = headerH + mapH;
+    ctx.fillStyle = '#f4efe6';
+    ctx.fillRect(0, fy, mapW, footerH);
+    ctx.fillStyle = '#2B2B2B';
+    ctx.font = `${10 * scale}px system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif`;
+    ctx.textBaseline = 'top';
+    footerLines.forEach((ln, i) => ctx.fillText(ln, 16 * scale, fy + (10 + i * 14) * scale));
+    const filename = exportFilename();
+    const note = basemapOk ? '' : 'Basemap could not be included (tiles were blocked by the browser). A plain land and sea background was used instead.';
+    return { canvas: out, filename, basemapOk, note, title };
+  }
+
+  function saveBlob(blob, filename, previewWin) {
+    const url = URL.createObjectURL(blob);
+    if (previewWin && !previewWin.closed) {
+      try {
+        previewWin.document.open();
+        previewWin.document.write(`<!doctype html><meta charset="utf-8"><title>${filename}</title>` +
+          `<body style="font:14px system-ui,sans-serif;margin:16px"><p>Long-press or right-click the image to save <b>${filename}</b>.</p>` +
+          `<img alt="${filename}" src="${url}" style="max-width:100%;height:auto"></body>`);
+        previewWin.document.close();
+        return;
+      } catch (e) { /* fall through */ }
+    }
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 4000);
+  }
+
+  async function startExport() {
+    if (startExport._busy) return;
+    startExport._busy = true;
+    setExporting(true);
+    toast('Preparing image\u2026', 0);
+    const previewWin = isIOS() ? window.open('about:blank', '_blank') : null;
+    try {
+      const { canvas, filename, basemapOk, note } = await buildPng();
+      const blob = await new Promise((res, rej) => canvas.toBlob((b) => b ? res(b) : rej(new Error('Could not make PNG')), 'image/png'));
+      saveBlob(blob, filename, previewWin);
+      toast(note ? ('Saved ' + filename + '. ' + note) : ('Saved ' + filename), note ? 7000 : 3500);
+    } catch (e) {
+      console.error(e);
+      if (previewWin && !previewWin.closed) previewWin.close();
+      toast('Could not save the image (' + (e.message || 'error') + ').', 6000);
+    } finally {
+      startExport._busy = false;
+      setExporting(false);
+    }
+  }
+
+  async function hookExport() {
+    const { canvas, filename, basemapOk, note, title } = await buildPng();
+    return { dataUrl: canvas.toDataURL('image/png'), filename, basemapOk, note, title, width: canvas.width, height: canvas.height };
+  }
+
+  function addPngButton() {
+    const PngControl = window.L.Control.extend({
+      options: { position: 'topright' },
+      onAdd() {
+        const wrap = window.L.DomUtil.create('div', 'leaflet-bar leaflet-control png-control');
+        const btn = window.L.DomUtil.create('a', '', wrap);
+        btn.href = '#';
+        btn.role = 'button';
+        btn.title = 'Save the current map as a PNG image';
+        btn.setAttribute('aria-label', 'Save as PNG');
+        btn.textContent = 'Save as PNG';
+        window.L.DomEvent.disableClickPropagation(wrap);
+        window.L.DomEvent.on(btn, 'click', (e) => { window.L.DomEvent.preventDefault(e); startExport(); });
+        return wrap;
+      }
+    });
+    // Add before the layers control so this sits at the top of the stack.
+    new PngControl().addTo(map);
+    document.querySelectorAll('#btn-png, #btn-png-mob').forEach((b) => { if (b) b.onclick = startExport; });
+    window.__goyderExportPng = hookExport;
+  }
+
   async function init() {
     readHash();
     M = await getJSON('manifest.json');
@@ -455,12 +977,15 @@
     map.createPane('iso').style.zIndex = 420;
     map.createPane('line').style.zIndex = 430;
     map.createPane('towns').style.zIndex = 440;
-    const osm = window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' });
+    const osm = window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, crossOrigin: 'anonymous', attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' });
     const esri = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
     const sat = window.L.layerGroup([
-      window.L.tileLayer(esri + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics' }),
-      window.L.tileLayer(esri + 'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { pane: 'labels', maxZoom: 18, attribution: 'Labels &copy; Esri' }),
+      window.L.tileLayer(esri + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, crossOrigin: 'anonymous', attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics' }),
+      window.L.tileLayer(esri + 'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { pane: 'labels', maxZoom: 18, crossOrigin: 'anonymous', attribution: 'Labels &copy; Esri' }),
     ]);
+    baseLayers = { osm, sat };
+    // Save-as-PNG sits at the top of the right-hand controls; layers control is added after it.
+    addPngButton();
     sat.addTo(map);
     window.L.control.layers({ 'Satellite': sat, 'Street map': osm }, null, { position: 'topright' }).addTo(map);
     fitSA();

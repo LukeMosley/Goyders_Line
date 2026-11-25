@@ -33,6 +33,11 @@ What it shows:
 * Satellite basemap with place names (street map as an option), labelled reference towns, colour-blind-safe palettes
   (viridis; BrBG for anomalies), and a legend with tick marks.
 * Controls are in a left-hand panel, in a simple order: find your town, choose what to show, pick the time. Advanced choices (the average period, how many years, the 300 mm line dates, the optional 250 mm line, shading) sit under **More options**, with sensible defaults. The default basemap is satellite imagery with place names, and a street map is one click away.
+* **Save as PNG** (button on the map, and on phones also at the top) downloads the current view — rainfall, Goyder's Line,
+  active rainfall lines, town labels, legend, scale bar and a short credit footer — as a PNG named after the view
+  (e.g. `goyders-line_annual_2019_pct.png`). Satellite and street-map tiles are drawn when the browser allows it; if
+  the tiles cannot be included, the image uses a plain land and sea background and says so. On iPhone and iPad the
+  image opens in a new tab so you can long-press to save it.
 * The view is saved in the URL hash (e.g. `#view=annual&year=2019&display=pct`), so you can link to or embed a
   specific map. Add `?compact` to hide the introduction text.
 

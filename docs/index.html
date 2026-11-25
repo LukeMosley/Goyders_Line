@@ -12,7 +12,10 @@
 <div class="app">
   <header class="mob-head">
     <h1>Goyder's Line &amp; SA rainfall</h1>
-    <button type="button" id="open-options" class="options-btn">Find your town / map options</button>
+    <div class="mob-actions">
+      <button type="button" id="open-options" class="options-btn">Find your town / map options</button>
+      <button type="button" id="btn-png-mob" class="png-btn">Save as PNG</button>
+    </div>
   </header>
 
   <div class="stage">
@@ -123,6 +126,7 @@
     </div>
   </aside>
 </div>
+<div id="png-toast" class="png-toast" hidden role="status"></div>
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/fflate.min.js"></script>
 <script src="app.js"></script>
